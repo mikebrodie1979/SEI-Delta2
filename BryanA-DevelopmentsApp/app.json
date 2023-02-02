@@ -1,0 +1,37 @@
+{
+  "id": "d30af3a7-247a-5557-80a1-9b82e52ee5a6",
+  "name": "BryanA - SEI Functionality",
+  "publisher": "BryanA BC Developments Inc.",
+  "brief": "Provides custom functionality for SEI Delta.",
+  "description": "",
+  "version": "14.0.1.1",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "capabilities": [],
+  "dependencies": [
+    {
+      "appId": "d30af3a7-247a-5555-80a1-9b82e52ee5a6",
+      "name": "BryanA - SEI Table Customizations",
+      "publisher": "BryanA BC Developments Inc.",
+      "version": "14.0.1.1"
+    },
+    {
+      "appId": "d30af3a7-247a-4416-80a1-9b82e52ee5a6",
+      "name": "SEI Table App",
+      "publisher": "Encore Business Solutions",
+      "version": "1.21.14.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "14.0.0.0",
+  "application": "14.0.0.0",
+  "idRange": {
+    "from": 50000,
+    "to": 89999
+  },
+  "showMyCode": true,
+  "target": "Internal"
+}

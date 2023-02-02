@@ -1,0 +1,37 @@
+{
+    "version": "1.0.0",
+    "configurations": [
+        {
+            "type": "al",
+            "request": "launch",
+            "name": "Dev",
+            "server": "http://localhost",
+            "port": 7119,
+            "serverInstance": "Dev",
+            "authentication": "UserPassword",
+            // "schemaUpdateMode": "ForceSync"
+        }
+        ,
+        {
+            "type": "al",
+            "request": "launch",
+            "name": "Test",
+            "server": "http://localhost",
+            "port": 7114,
+            "serverInstance": "Test",
+            "authentication": "UserPassword",
+            "schemaUpdateMode": "Synchronize"
+        }
+        // ,
+        // {
+        //     "type": "al",
+        //     "request": "launch",
+        //     "name": "Live",
+        //     "server": "http://localhost",
+        //     "port": 7109,
+        //     "serverInstance": "SEI140",
+        //     "authentication": "UserPassword",
+        //     "schemaUpdateMode": "Synchronize"
+        // }
+    ]
+}
