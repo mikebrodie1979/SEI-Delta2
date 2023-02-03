@@ -1,4 +1,4 @@
-pageextension 80088 "BA Item Ledger Entries" extends "Item Ledger Entries"
+pageextension 80091 "BA Item Ledger Entries" extends "Item Ledger Entries"
 {
     layout
     {
