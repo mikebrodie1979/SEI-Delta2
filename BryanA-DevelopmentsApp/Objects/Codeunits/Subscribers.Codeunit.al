@@ -138,7 +138,8 @@ codeunit 75010 "BA SEI Subscibers"
             repeat
                 WhseActivityLine.SetRange("Source Line No.", SalesLine."Line No.");
                 if WhseActivityLine.IsEmpty() then begin
-                    SalesLine.Validate("Qty. to Ship", SalesLine."BA Org. Qty. To Ship");
+                    if SalesHeader.Invoice then
+                        SalesLine.Validate("Qty. to Ship", SalesLine."BA Org. Qty. To Ship");
                     SalesLine.Validate("Qty. to Invoice", SalesLine."BA Org. Qty. To Invoice");
                     SalesLine.Modify(true);
                 end;
@@ -986,6 +987,18 @@ codeunit 75010 "BA SEI Subscibers"
             Item.Modify(true);
             Commit();
         end;
+    end;
+
+
+    [EventSubscriber(ObjectType::Report, Report::"Refresh Production Order", 'OnAfterRefreshProdOrder', '', false, false)]
+    local procedure RefreshProdOrderOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
+    var
+        ProdBOMHeader: Record "Production BOM Header";
+    begin
+        if ErrorOccured or (ProductionOrder."Source Type" <> ProductionOrder."Source Type"::Item) or not ProdBOMHeader.Get(ProductionOrder."Source No.") then
+            exit;
+        ProductionOrder."BA Source Version" := ProdBOMHeader."ENC Active Version No.";
+        ProductionOrder.Modify(true);
     end;
 
 

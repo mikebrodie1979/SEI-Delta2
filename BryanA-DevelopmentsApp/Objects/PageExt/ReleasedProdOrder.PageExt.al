@@ -23,5 +23,12 @@ pageextension 80023 "BA Released Prod. Order" extends "Released Production Order
                 exit(Text <> '');
             end;
         }
+        addafter("Source No.")
+        {
+            field("BA Source Version"; Rec."BA Source Version")
+            {
+                ApplicationArea = all;
+            }
+        }
     }
 }
