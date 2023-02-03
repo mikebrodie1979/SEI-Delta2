@@ -2,6 +2,16 @@ pageextension 80056 "BA Vendor Card" extends "Vendor Card"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Country/Region Code")
         {
             ApplicationArea = all;

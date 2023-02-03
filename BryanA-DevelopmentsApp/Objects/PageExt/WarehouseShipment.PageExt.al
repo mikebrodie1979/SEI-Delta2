@@ -1,4 +1,4 @@
-pageextension 80093 "BA Serv ice Quotes" extends "Service Quotes"
+pageextension 80135 "BA Warehouse Shpt." extends "Warehouse Shipment"
 {
     layout
     {
@@ -8,7 +8,7 @@ pageextension 80093 "BA Serv ice Quotes" extends "Service Quotes"
             var
                 Subscribers: Codeunit "BA SEI Subscibers";
             begin
-                Text := Subscribers.LocationListLookup();
+                Text := Subscribers.LocationListLookup(true);
                 exit(Text <> '');
             end;
         }

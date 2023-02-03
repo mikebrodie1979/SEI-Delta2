@@ -10,6 +10,16 @@ pageextension 80118 "BA Planned Prod. Order Lines" extends "Planned Prod. Order 
                 CalcFields("BA Default Cross-Ref. No.", "BA Default Vendor No.");
             end;
         }
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         addafter("Item No.")
         {
             field("BA Default Vendor No."; "BA Default Vendor No.")

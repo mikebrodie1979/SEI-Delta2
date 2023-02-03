@@ -10,6 +10,16 @@ pageextension 80116 "BA Finished Prod. Order Lines" extends "Finished Prod. Orde
                 CalcFields("BA Default Cross-Ref. No.", "BA Default Vendor No.");
             end;
         }
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         addafter("Item No.")
         {
             field("BA Default Vendor No."; "BA Default Vendor No.")

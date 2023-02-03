@@ -21,6 +21,21 @@ pageextension 80009 "BA Item Card" extends "Item Card"
                 ToolTip = 'Specifies the most recent USD purchase unit cost for the item.';
             }
         }
+        addafter("Base Unit of Measure")
+        {
+            field("ENC Is Fabric"; "ENC Is Fabric")
+            {
+                ApplicationArea = all;
+            }
+            field("BA ETL Approved Fabric"; "BA ETL Approved Fabric")
+            {
+                ApplicationArea = all;
+            }
+            field("ENC Fabric Brand Name"; "ENC Fabric Brand Name")
+            {
+                ApplicationArea = all;
+            }
+        }
         addlast(Item)
         {
             group("Dimensions")
@@ -69,21 +84,6 @@ pageextension 80009 "BA Item Card" extends "Item Card"
                 }
             }
         }
-        addafter("Base Unit of Measure")
-        {
-            field("ENC Is Fabric"; "ENC Is Fabric")
-            {
-                ApplicationArea = all;
-            }
-            field("BA ETL Approved Fabric"; "BA ETL Approved Fabric")
-            {
-                ApplicationArea = all;
-            }
-            field("ENC Fabric Brand Name"; "ENC Fabric Brand Name")
-            {
-                ApplicationArea = all;
-            }
-        }
         modify("Vendor Item No.")
         {
             ApplicationArea = all;
@@ -127,35 +127,6 @@ pageextension 80009 "BA Item Card" extends "Item Card"
                         exit;
                     Vendor.SetRange("No.", Rec."BA Default Vendor No.");
                     Page.RunModal(Page::"Vendor Card", Vendor);
-                end;
-            }
-        }
-    }
-
-    actions
-    {
-        addlast(Processing)
-        {
-            action("BA Cancel Item")
-            {
-                ApplicationArea = all;
-                Promoted = true;
-                PromotedCategory = Category4;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                Image = Cancel;
-                Caption = 'Cancel Item';
-                ToolTip = 'Deletes an item that has been accidently created.';
-
-                trigger OnAction()
-                var
-                    ItemNo: Code[20];
-                begin
-                    if not Confirm(CancelMsg) then
-                        exit;
-                    ItemNo := Rec."No.";
-                    Rec.Delete(true);
-                    Subscribers.ReuseItemNo(ItemNo);
                 end;
             }
         }
@@ -221,29 +192,4 @@ pageextension 80009 "BA Item Card" extends "Item Card"
             end;
         exit(false);
     end;
-
-
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    var
-        ItemNo: Code[20];
-    begin
-        if (Rec."No." = '') or (Rec.Description <> '') or Deleted or (Rec."ENC Created Date" <> Today()) then
-            exit;
-        if not Confirm(StrSubstNo(CancelItemMsg, Rec."No.")) then
-            Error('');
-        ItemNo := Rec."No.";
-        Rec.Delete(true);
-        Subscribers.ReuseItemNo(ItemNo);
-    end;
-
-    trigger OnDeleteRecord(): Boolean
-    begin
-        Deleted := true;
-    end;
-
-    var
-        Subscribers: Codeunit "BA SEI Subscibers";
-        Deleted: Boolean;
-        CancelItemMsg: Label 'Do you want to cancel creating Item No. %1?';
-        CancelMsg: Label 'Cancel item?';
 }

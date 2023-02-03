@@ -2,6 +2,16 @@ pageextension 80051 "BA Service Quote" extends "Service Quote"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Bill-to Country/Region Code")
         {
             ApplicationArea = all;

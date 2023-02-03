@@ -1,6 +1,5 @@
-pageextension 80012 "BA Posted Purch. Invoices" extends "Posted Purchase Invoices"
+pageextension 80018 "BA Purch. Return Orders" extends "Purchase Return Order List"
 {
-
     trigger OnOpenPage()
     var
         FilterNo: Integer;

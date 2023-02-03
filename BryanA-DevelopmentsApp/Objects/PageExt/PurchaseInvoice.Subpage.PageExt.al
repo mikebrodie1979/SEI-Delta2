@@ -16,6 +16,16 @@ pageextension 80001 "BA Purch. Inv. Subpage" extends "Purch. Invoice Subform"
                 end;
             }
         }
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
     }
 
     trigger OnAfterGetRecord()

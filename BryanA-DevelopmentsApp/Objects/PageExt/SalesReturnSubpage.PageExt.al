@@ -1,14 +1,7 @@
-pageextension 80003 "BA Assembly Order Subpage" extends "Assembly Order Subform"
+pageextension 80139 "BA Sales Return Subpage" extends "Sales Return Order Subform"
 {
     layout
     {
-        addafter(Description)
-        {
-            field("BA Optional"; "BA Optional")
-            {
-                ApplicationArea = all;
-            }
-        }
         modify("Location Code")
         {
             trigger OnLookup(var Text: Text): Boolean

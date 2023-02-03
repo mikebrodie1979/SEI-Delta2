@@ -2,6 +2,16 @@ pageextension 80000 "BA Purch. Order Subpage" extends "Purchase Order Subform"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Direct Unit Cost")
         {
             ApplicationArea = all;

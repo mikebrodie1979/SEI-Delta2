@@ -1,10 +1,10 @@
-pageextension 80091 "BA Item Ledger Entries" extends "Item Ledger Entries"
+pageextension 80131 "BA Location List" extends "Location List"
 {
     layout
     {
         addlast(Control1)
         {
-            field("BA Year-end Adjst."; "BA Year-end Adjst.")
+            field("BA Inactive"; Rec."BA Inactive")
             {
                 ApplicationArea = all;
             }

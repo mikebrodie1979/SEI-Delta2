@@ -2,6 +2,16 @@ pageextension 80025 "BA Sales Order" extends "Sales Order"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Due Date")
         {
             ApplicationArea = all;
