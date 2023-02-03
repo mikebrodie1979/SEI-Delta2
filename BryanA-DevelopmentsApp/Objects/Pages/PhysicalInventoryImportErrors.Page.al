@@ -1,4 +1,4 @@
-page 50069 "BA Phys. Invt. Import Errors"
+page 50067 "BA Phys. Invt. Import Errors"
 {
     SourceTable = "Name/Value Buffer";
     PageType = List;

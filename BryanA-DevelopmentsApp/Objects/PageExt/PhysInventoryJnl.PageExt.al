@@ -1,4 +1,4 @@
-pageextension 80087 "BA Phys. Inventory Jnl." extends "Phys. Inventory Journal"
+pageextension 80090 "BA Phys. Inventory Jnl." extends "Phys. Inventory Journal"
 {
     layout
     {
