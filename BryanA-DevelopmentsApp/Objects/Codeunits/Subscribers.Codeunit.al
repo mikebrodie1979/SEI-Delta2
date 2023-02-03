@@ -977,6 +977,29 @@ codeunit 75010 "BA SEI Subscibers"
         LocCode := LocationListLookup();
     end;
 
+
+    procedure ReuseItemNo(ItemNo: Code[20])
+    var
+        InventorySetup: Record "Inventory Setup";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesLine2: Record "No. Series Line";
+        LineNo: Integer;
+    begin
+        InventorySetup.Get();
+        InventorySetup.TestField("Item Nos.");
+        NoSeriesLine2.SetRange("Series Code", InventorySetup."Item Nos.");
+        if NoSeriesLine2.FindLast() then
+            LineNo := NoSeriesLine2."Line No.";
+        NoSeriesLine.Init();
+        NoSeriesLine.Validate("Series Code", InventorySetup."Item Nos.");
+        NoSeriesLine."Line No." := LineNo + 10000;
+        NoSeriesLine."Last No. Used" := ItemNo;
+        NoSeriesLine."BA Replacement" := true;
+        NoSeriesLine."BA Replacement DateTime" := CurrentDateTime;
+        NoSeriesLine.Open := false;
+        NoSeriesLine.Insert(false);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Config. Package Management", 'OnApplyItemDimension', '', false, false)]
     local procedure ConfigPackageMgtOnApplyItemDim(ItemNo: Code[20])
     var
