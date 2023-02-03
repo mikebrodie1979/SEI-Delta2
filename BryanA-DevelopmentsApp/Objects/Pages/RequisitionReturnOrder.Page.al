@@ -307,6 +307,14 @@ page 50050 "BA Requsition Return Order"
                     ApplicationArea = Location;
                     Importance = Promoted;
                     ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        Subscribers: Codeunit "BA SEI Subscibers";
+                    begin
+                        Text := Subscribers.LocationListLookup();
+                        exit(Text <> '');
+                    end;
                 }
                 field("Applies-to Doc. Type"; "Applies-to Doc. Type")
                 {

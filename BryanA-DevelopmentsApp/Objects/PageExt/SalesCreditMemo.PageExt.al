@@ -2,6 +2,16 @@ pageextension 80053 "BA Sales Credit Memo" extends "Sales Credit Memo"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Sell-to Country/Region Code")
         {
             ApplicationArea = all;

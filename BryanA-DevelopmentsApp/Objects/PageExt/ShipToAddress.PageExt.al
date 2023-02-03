@@ -2,6 +2,16 @@ pageextension 80049 "BA Ship-to Address" extends "Ship-to Address"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify(GLN)
         {
             ApplicationArea = all;

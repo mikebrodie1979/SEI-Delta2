@@ -13,6 +13,16 @@ pageextension 80076 "BA Sales Quote Subpage" extends "Sales Quote Subform"
                 Caption = 'Exchange Rate';
             }
         }
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
     }
 
 

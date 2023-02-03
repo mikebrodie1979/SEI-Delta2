@@ -13,6 +13,16 @@ pageextension 80078 "BA Sales Order Subpage" extends "Sales Order Subform"
                 Caption = 'Exchange Rate';
             }
         }
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
     }
 
 

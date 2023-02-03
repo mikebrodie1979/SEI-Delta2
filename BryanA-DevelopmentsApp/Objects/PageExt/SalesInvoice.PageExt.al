@@ -2,6 +2,16 @@ pageextension 80073 "BA Sales Invoice" extends "Sales Invoice"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Bill-to Country/Region Code")
         {
             ApplicationArea = all;

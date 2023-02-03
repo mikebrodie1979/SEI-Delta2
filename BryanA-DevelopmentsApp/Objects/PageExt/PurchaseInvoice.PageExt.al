@@ -2,6 +2,16 @@ pageextension 80058 "BA Purchase Invoice" extends "Purchase Invoice"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Buy-from Country/Region Code")
         {
             ApplicationArea = all;

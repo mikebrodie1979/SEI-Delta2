@@ -2,6 +2,16 @@ pageextension 80054 "BA Sales Return Order" extends "Sales Return Order"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         modify("Sell-to Country/Region Code")
         {
             ApplicationArea = all;

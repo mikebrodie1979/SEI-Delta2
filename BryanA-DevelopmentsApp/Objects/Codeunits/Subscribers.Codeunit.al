@@ -139,7 +139,8 @@ codeunit 75010 "BA SEI Subscibers"
             repeat
                 WhseActivityLine.SetRange("Source Line No.", SalesLine."Line No.");
                 if WhseActivityLine.IsEmpty() then begin
-                    SalesLine.Validate("Qty. to Ship", SalesLine."BA Org. Qty. To Ship");
+                    if SalesHeader.Invoice then
+                        SalesLine.Validate("Qty. to Ship", SalesLine."BA Org. Qty. To Ship");
                     SalesLine.Validate("Qty. to Invoice", SalesLine."BA Org. Qty. To Invoice");
                     SalesLine.Modify(true);
                 end;
@@ -478,6 +479,7 @@ codeunit 75010 "BA SEI Subscibers"
     var
         Item: Record Item;
         GLSetup: Record "General Ledger Setup";
+        DefaultDim: Record "Default Dimension";
     begin
         if (Rec."Dimension Value Code" = xRec."Dimension Value Code") or (Rec."Table ID" <> Database::Item)
                 or (Rec."No." = '') or not Item.Get(Rec."No.") then
@@ -505,7 +507,8 @@ codeunit 75010 "BA SEI Subscibers"
             else
                 exit;
         end;
-        Rec.Modify(true);
+        if DefaultDim.Get(Rec.RecordId()) then
+            Rec.Modify(true)
     end;
 
 
@@ -557,8 +560,6 @@ codeunit 75010 "BA SEI Subscibers"
         ToSalesPrice.DeleteAll(false);
         ToSalesPrice.SetRange("Starting Date");
     end;
-
-
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Price Calc. Mgt.", 'OnAfterFindSalesLineItemPrice', '', false, false)]
     local procedure SalesPriceMgtOnAfterFindSalesLineItemPrice(var SalesLine: Record "Sales Line"; var TempSalesPrice: Record "Sales Price"; var FoundSalesPrice: Boolean)
@@ -621,7 +622,7 @@ codeunit 75010 "BA SEI Subscibers"
         if not ServiceSetup.Get() or not ServiceSetup."BA Use Single Currency Pricing" then
             exit;
         ServiceSetup.TestField("BA Single Price Currency");
-        if not FoundSalesPrice and (ServiceLine."Unit Price" <> 0) then begin
+        if not FoundSalesPrice then begin
             TempSalesPrice."Unit Price" := ServiceLine."Unit Price";
             exit;
         end;
@@ -633,9 +634,10 @@ codeunit 75010 "BA SEI Subscibers"
         SalesPrice.SetRange("Currency Code", CurrencyCode);
         SalesPrice.SetRange("Starting Date", 0D, WorkDate());
         SalesPrice.SetAscending("Starting Date", true);
-        FoundSalesPrice := SalesPrice.FindLast();
-        if not FoundSalesPrice then
+        if not SalesPrice.FindLast() then begin
+            FoundSalesPrice := false;
             exit;
+        end;
         TempSalesPrice := SalesPrice;
         if not (ServiceLine."Document Type" in [ServiceLine."Document Type"::Quote, ServiceLine."Document Type"::Order]) then
             exit;
@@ -848,57 +850,16 @@ codeunit 75010 "BA SEI Subscibers"
         Rec."BA Created At" := CurrentDateTime();
     end;
 
-
-    [EventSubscriber(ObjectType::Table, Database::"Currency Exchange Rate", 'OnAfterValidateEvent', 'Relational Exch. Rate Amount', false, false)]
-    local procedure CurrencyExchangeRateOnAfterValidateRelationExchRateAmount(var Rec: Record "Currency Exchange Rate"; var xRec: Record "Currency Exchange Rate")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Config. Package Management", 'OnApplyItemDimension', '', false, false)]
+    local procedure ConfigPackageMgtOnApplyItemDim(ItemNo: Code[20])
     var
-        Customer: Record Customer;
-        Window: Dialog;
-        RecCount: Integer;
-        i: Integer;
+        Item: Record Item;
+        ItemCard: Page "Item Card";
     begin
-        if (Rec."Currency Code" <> 'USD') or (Rec."Relational Exch. Rate Amount" = xRec."Relational Exch. Rate Amount") then
-            exit;
-        UpdateSystemIndicator(Rec);
-        Customer.SetFilter("BA Credit Limit", '<>%1', 0);
-        if not Customer.FindSet(true) then
-            exit;
-        RecCount := Customer.Count;
-        if not Confirm(UpdateCreditLimitMsg) then
-            exit;
-        Window.Open(UpdateCreditLimitDialog);
-        repeat
-            i += 1;
-            Window.Update(1, StrSubstNo('%1 of %2', i, RecCount));
-            Customer.Validate("Credit Limit (LCY)", Customer."BA Credit Limit" * Rec."Relational Exch. Rate Amount");
-            Customer.Modify(true);
-        until Customer.Next() = 0;
-        Window.Close();
-    end;
-
-
-    local procedure UpdateSystemIndicator(var CurrExchRate: Record "Currency Exchange Rate")
-    var
-        CompInfo: Record "Company Information";
-        DateRec: Record Date;
-    begin
-        CompInfo.Get('');
-        DateRec.SetRange("Period Type", DateRec."Period Type"::Month);
-        DateRec.SetRange("Period Start", DMY2Date(1, Date2DMY(CurrExchRate."Starting Date", 2), 2000));
-        DateRec.FindFirst();
-        CompInfo."Custom System Indicator Text" := CopyStr(StrSubstNo('%1 - USD Exch. Rate %2 (%3)', CompanyName(), CurrExchRate."Relational Exch. Rate Amount", DateRec."Period Name"), 1, MaxStrLen(CompInfo."Custom System Indicator Text"));
-        CompInfo.Modify(false);
-    end;
-
-
-    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterValidateEvent', 'Credit Limit (LCY)', false, false)]
-    local procedure CustomerNoAfterValidateCreditLimit(var Rec: Record Customer; var xRec: Record Customer)
-    begin
-        if Rec."Credit Limit (LCY)" = xRec."Credit Limit (LCY)" then
-            exit;
-        Rec."BA Credit Limit Last Updated" := CurrentDateTime();
-        Rec."BA Credit Limit Updated By" := UserId();
-        Rec.Modify(true);
+        if Item.Get(ItemNo) and ItemCard.CheckToUpdateDimValues(Item) then begin
+            Item.Modify(true);
+            Commit();
+        end;
     end;
 
 
@@ -989,6 +950,183 @@ codeunit 75010 "BA SEI Subscibers"
         NoSeriesLine.SetRange("BA Replacement", true);
         if NoSeriesLine.FindFirst() then
             NoSeriesLine.Delete(true);
+    end;
+
+
+    [EventSubscriber(ObjectType::Table, Database::"Currency Exchange Rate", 'OnAfterValidateEvent', 'Relational Exch. Rate Amount', false, false)]
+    local procedure CurrencyExchangeRateOnAfterValidateRelationExchRateAmount(var Rec: Record "Currency Exchange Rate"; var xRec: Record "Currency Exchange Rate")
+    var
+        Customer: Record Customer;
+        Window: Dialog;
+        RecCount: Integer;
+        i: Integer;
+    begin
+        if (Rec."Currency Code" <> 'USD') or (Rec."Relational Exch. Rate Amount" = xRec."Relational Exch. Rate Amount") then
+            exit;
+        UpdateSystemIndicator(Rec);
+        Customer.SetFilter("BA Credit Limit", '<>%1', 0);
+        if not Customer.FindSet(true) then
+            exit;
+        RecCount := Customer.Count;
+        if not Confirm(UpdateCreditLimitMsg) then
+            exit;
+        Window.Open(UpdateCreditLimitDialog);
+        repeat
+            i += 1;
+            Window.Update(1, StrSubstNo('%1 of %2', i, RecCount));
+            Customer.Validate("Credit Limit (LCY)", Customer."BA Credit Limit" * Rec."Relational Exch. Rate Amount");
+            Customer.Modify(true);
+        until Customer.Next() = 0;
+        Window.Close();
+    end;
+
+
+    local procedure UpdateSystemIndicator(var CurrExchRate: Record "Currency Exchange Rate")
+    var
+        CompInfo: Record "Company Information";
+        DateRec: Record Date;
+    begin
+        CompInfo.Get('');
+        DateRec.SetRange("Period Type", DateRec."Period Type"::Month);
+        DateRec.SetRange("Period Start", DMY2Date(1, Date2DMY(CurrExchRate."Starting Date", 2), 2000));
+        DateRec.FindFirst();
+        CompInfo."Custom System Indicator Text" := CopyStr(StrSubstNo('%1 - USD Exch. Rate %2 (%3)', CompanyName(), CurrExchRate."Relational Exch. Rate Amount", DateRec."Period Name"), 1, MaxStrLen(CompInfo."Custom System Indicator Text"));
+        CompInfo.Modify(false);
+    end;
+
+
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterValidateEvent', 'Credit Limit (LCY)', false, false)]
+    local procedure CustomerNoAfterValidateCreditLimit(var Rec: Record Customer; var xRec: Record Customer)
+    begin
+        if Rec."Credit Limit (LCY)" = xRec."Credit Limit (LCY)" then
+            exit;
+        Rec."BA Credit Limit Last Updated" := CurrentDateTime();
+        Rec."BA Credit Limit Updated By" := UserId();
+        Rec.Modify(true);
+    end;
+
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ENC SEI Functions", 'CopyCustomTemplateFieldsOnAfterSetFilters', '', false, false)]
+    local procedure CopyCustomTemplateFieldsOnAfterSetFilters(var FieldRec: Record Field)
+    begin
+        AddFieldFilter(FieldRec);
+        // if not Confirm(StrSubstNo('CopyCustomTemplateFieldsOnAfterSetFilters\%1 -> %2', FieldRec.GetFilters, FieldRec.Count())) then
+        //     Error('');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ENC SEI Functions", 'AssignCustomTemplateFieldsOnAfterSetFilters1', '', false, false)]
+    local procedure AssignCustomTemplateFieldsOnAfterSetFilters1(var FieldRec: Record Field)
+    begin
+        AddFieldFilter(FieldRec);
+        // if not Confirm(StrSubstNo('AssignCustomTemplateFieldsOnAfterSetFilters1\%1 -> %2', FieldRec.GetFilters, FieldRec.Count())) then
+        //     Error('');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"ENC SEI Functions", 'AssignCustomTemplateFieldsOnAfterSetFilters2', '', false, false)]
+    local procedure AssignCustomTemplateFieldsOnAfterSetFilters2(var FieldRec: Record Field)
+    begin
+        AddFieldFilter(FieldRec);
+        // if not Confirm(StrSubstNo('AssignCustomTemplateFieldsOnAfterSetFilters2\%1 -> %2', FieldRec.GetFilters, FieldRec.Count())) then
+        //     Error('');
+    end;
+
+    local procedure AddFieldFilter(var FieldRec: Record Field)
+    var
+        FilterText: Text;
+        MinValue: Integer;
+        MaxValue: Integer;
+    begin
+        MinValue := 80000;
+        MaxValue := 80199;
+        FilterText := FieldRec.GetFilter("No.");
+        if FilterText <> '' then
+            FieldRec.SetFilter("No.", StrSubstNo('%1|%2', FilterText, StrSubstNo('%1..%2', MinValue, MaxValue)))
+        else
+            FieldRec.SetRange("No.", MinValue, MaxValue);
+    end;
+
+
+
+    // [EventSubscriber(ObjectType::Table, Database::"BA Product Profile", 'OnAfterValidateEvent', 'Replenishment System', false, false)]
+    // local procedure ProductProfileOnAfterValidateReplenishmentSystem(var Rec: Record "BA Product Profile")
+    // begin
+    //     if Rec."Replenishment System" <> Rec."Replenishment System"::Assembly then
+    //         Rec.TestField("Assembly Policy", Rec."Assembly Policy"::"Assemble-to-Stock");
+    //     if Rec."Replenishment System" <> Rec."Replenishment System"::Purchase then
+    //         Rec.TestField(Type, Rec.Type::Inventory);
+    // end;
+    // [EventSubscriber(ObjectType::Table, Database::"BA Product Profile", 'OnAfterValidateEvent', 'Assembly Policy', false, false)]
+    // local procedure ProductProfileOnAfterValidateAssemblyPolicy(var Rec: Record "BA Product Profile")
+    // begin
+    //     if Rec."Assembly Policy" = Rec."Assembly Policy"::"Assemble-to-Stock" then
+    //         Rec.TestField("Replenishment System", Rec."Replenishment System"::Assembly);
+    //     if Rec."Assembly Policy" = Rec."Assembly Policy"::"Assemble-to-Order" then
+    //         if not (Rec.Type in [Rec.Type::"Non-Inventory", Rec.Type::Service]) then
+    //             Rec.FieldError(Type);
+    // end;
+
+
+
+
+    procedure LocationListLookup(): Code[20]
+    begin
+        exit(LocationListLookup(false));
+    end;
+
+
+    procedure LocationListLookup(WarehouseLookup: Boolean): Code[20]
+    var
+        Location: Record Location;
+        LocationList: Page "Location List";
+        WarehouseEmployee: Record "Warehouse Employee";
+        FilterStr: Text;
+    begin
+        Location.FilterGroup(2);
+        Location.SetRange("BA Inactive", false);
+        if WarehouseLookup and (UserId() <> '') then begin
+            WarehouseEmployee.SetRange("User ID", UserId());
+            if WarehouseEmployee.FindSet() then
+                repeat
+                    if FilterStr = '' then
+                        FilterStr := WarehouseEmployee."Location Code"
+                    else
+                        FilterStr += '|' + WarehouseEmployee."Location Code";
+                until WarehouseEmployee.Next() = 0
+            else
+                Error('%1 must be setup as an %2', UserId(), WarehouseEmployee.TableCaption());
+            Location.SetFilter(Code, FilterStr);
+        end;
+        Location.FilterGroup(0);
+        LocationList.SetTableView(Location);
+        LocationList.LookupMode(true);
+        if LocationList.RunModal() <> Action::LookupOK then
+            exit('');
+        LocationList.GetRecord(Location);
+        exit(Location.Code);
+    end;
+
+
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnBeforeFindLocations', '', false, false)]
+    local procedure LocationOnBeforeFindLocations(var Location: Record Location)
+    begin
+        Location.SetRange("BA Inactive", false);
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Create Warehouse Location", 'OnLocationLookup', '', false, false)]
+    local procedure CreateWarehouseLocationOnLocationLookup(var Location: Record Location; var LocCode: Code[10])
+    begin
+        LocCode := LocationListLookup();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Refresh Production Order", 'OnAfterRefreshProdOrder', '', false, false)]
+    local procedure RefreshProdOrderOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
+    var
+        ProdBOMHeader: Record "Production BOM Header";
+    begin
+        if ErrorOccured or (ProductionOrder."Source Type" <> ProductionOrder."Source Type"::Item) or not ProdBOMHeader.Get(ProductionOrder."Source No.") then
+            exit;
+        ProductionOrder."BA Source Version" := ProdBOMHeader."ENC Active Version No.";
+        ProductionOrder.Modify(true);
     end;
 
 

@@ -2,6 +2,16 @@ pageextension 80087 "BA Phys. Inventory Jnl." extends "Phys. Inventory Journal"
 {
     layout
     {
+        modify("Location Code")
+        {
+            trigger OnLookup(var Text: Text): Boolean
+            var
+                Subscribers: Codeunit "BA SEI Subscibers";
+            begin
+                Text := Subscribers.LocationListLookup();
+                exit(Text <> '');
+            end;
+        }
         addfirst(Control1)
         {
             field("Line No."; Rec."Line No.")

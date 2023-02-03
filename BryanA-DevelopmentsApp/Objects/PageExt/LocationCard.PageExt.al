@@ -11,7 +11,7 @@ pageextension 80035 "BA Location Card" extends "Location Card"
         }
         addfirst(AddressDetails)
         {
-            field("BA Country/Region Code"; "Country/Region Code")
+            field("BA Country/Region Code"; Rec."Country/Region Code")
             {
                 Caption = 'Country';
                 ApplicationArea = all;
@@ -22,6 +22,13 @@ pageextension 80035 "BA Location Card" extends "Location Card"
             Visible = false;
             Enabled = false;
             ApplicationArea = all;
+        }
+        addlast(General)
+        {
+            field("BA Inactive"; Rec."BA Inactive")
+            {
+                ApplicationArea = all;
+            }
         }
     }
 }
