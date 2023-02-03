@@ -1,4 +1,4 @@
-pageextension 80135 "BA Company Information" extends "Company Information"
+pageextension 80130 "BA Company Information" extends "Company Information"
 {
     layout
     {

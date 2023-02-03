@@ -21,6 +21,21 @@ pageextension 80009 "BA Item Card" extends "Item Card"
                 ToolTip = 'Specifies the most recent USD purchase unit cost for the item.';
             }
         }
+        addafter("Base Unit of Measure")
+        {
+            field("ENC Is Fabric"; "ENC Is Fabric")
+            {
+                ApplicationArea = all;
+            }
+            field("BA ETL Approved Fabric"; "BA ETL Approved Fabric")
+            {
+                ApplicationArea = all;
+            }
+            field("ENC Fabric Brand Name"; "ENC Fabric Brand Name")
+            {
+                ApplicationArea = all;
+            }
+        }
         addlast(Item)
         {
             group("Dimensions")
@@ -67,21 +82,6 @@ pageextension 80009 "BA Item Card" extends "Item Card"
                 {
                     ApplicationArea = all;
                 }
-            }
-        }
-        addafter("Base Unit of Measure")
-        {
-            field("ENC Is Fabric"; "ENC Is Fabric")
-            {
-                ApplicationArea = all;
-            }
-            field("BA ETL Approved Fabric"; "BA ETL Approved Fabric")
-            {
-                ApplicationArea = all;
-            }
-            field("ENC Fabric Brand Name"; "ENC Fabric Brand Name")
-            {
-                ApplicationArea = all;
             }
         }
         modify("Vendor Item No.")
